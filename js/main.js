@@ -21,13 +21,13 @@
 //
 //
 //
-// //Getting the weather for the day in tucson
-// // $.get(weatherURL, {
-// //     APPID: OPEN_WEATHER_APPID,
-// //     q: "Tucson, US"
-// // }).done(function(data){
-// //     console.log(data);
-// // })
+// Getting the weather for the day in tucson
+// $.get(weatherURL, {
+//     APPID: OPEN_WEATHER_APPID,
+//     q: "Tucson, US"
+// }).done(function(data){
+//     console.log(data);
+// })
 //
 //
 // //Getting the 5 day forecast for tucson
@@ -50,7 +50,13 @@
 
 //option 2
 //
+
 (function(){
+
+
+
+
+
     $().ready(function(){
         let d = new Date();
         let tz = Date();
@@ -80,66 +86,82 @@
             );
         });
 
-        mapboxgl.accessToken = MAPBOX_KEY;
+        mapboxgl.accessToken = MAPBOX_KEY ;
+        let ll = mapboxgl.LngLat.convert([-110.9742, 32.2540])
         let map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/dark-v10',
-            zoom: 10,
-            center: [-110.911789, 32.253460],
+            zoom: 11,
+            center: ll
         });
 
-        let markerExists = false;
-        let marker;
-        let destinationLat;
-        let destinationLng;
+        let marker = new mapboxgl.Marker();
+        marker.setLngLat([-110.9742, 32.2540]);
+        marker.addTo(map);
+        marker.setDraggable(true);
+
+
+//Gets you the coordinates of where you dragged the marker too
+        marker.on("dragend", function() {
+            let coordinates = ("/" + marker._lngLat.lat + "," + marker._lngLat.lng);
+            // console.log(marker.addTo(map));
 
 
 
 
-
+            // Getting the weather for the day in tucson
+            // $.get("https://api.openweathermap.org/data/2.5/forecast", {
+            //     APPID: OPEN_WEATHER_APPID,
+            //     q: "Tucson, US"
+            // }).done(function(data){
+            //     console.log(data);
+            // })
 
 
         $('#searchButton').click(function(){
             $.get("https://api.openweathermap.org/data/2.5/forecast", {
                APPID: OPEN_WEATHER_APPID,
-               lat: destinationLat,
-               lng: destinationLng,
+               latLng: coordinates,
                 units: "imperial",
                 q: $('#search').val()
             }).done(function(data){
                 $('#search').val("")
                 let day = [];
-                for(let i = 0; i < 6; i++){
-                   day.push({
-                       temp: data.list[i].main.temp.toFixed(0),
-                       tempHigh: data.list[i].main.temp_max.toFixed(0),
-                       tempLow: data.list[i].main.temp_min.toFixed(0),
-                       tempFeel: data.list[i].main.feels_like.toFixed(0),
-                       description: data.list[i].weather[0].description
-                   });
+                console.log(data)
+                for(let i = 0; i < data.list.length; i+=8) {
+                    day.push({
+                        date: data.list[i].dt_txt,
+                        temp: data.list[i].main.temp.toFixed(0),
+                        tempHigh: data.list[i].main.temp_max.toFixed(0),
+                        tempLow: data.list[i].main.temp_min.toFixed(0),
+                        tempFeel: data.list[i].main.feels_like.toFixed(0),
+                        description: data.list[i].weather[0].description
+                    });
+                }
+                for(let i = 0; i < day.length; i++){
                    let target;
-                   switch(day[i]){
-                       case day[1]:
+                   switch(i){
+                       case 0:
                            target = $('#forecast1')
                            break;
-                       case day[2]:
+                       case 1:
                             target = $('#forecast2')
                            break;
-                       case day[3]:
+                       case 2:
                            target = $('#forecast3')
                            break;
-                       case day[4]:
+                       case 3:
                            target = $('#forecast4')
                            break;
-                       case day[5]:
+                       case 4:
                            target = $('#forecast5')
                    }
                    $(target).html(
-                       "<div className=\"card-body\">" +
+                       "<div className=\"card-body\">" + "<h3 className=\"card-title\">" + "Date: " + day[i].date + "</h3>" +
                        "<h5 className=\"card-title\">" + "Condition: " + day[i].description + "<hr>" + "Feels like: " + day[i].tempFeel + "</h5>" +
                        "<p className=\"card-text\">" + "High: " + day[i].tempHigh + "<hr>" + "Low: " + day[i].tempLow + "</p>" +
                        "</div>" + "<div className=\"card-footer\">" +
-                       "<small className=\"text-muted\"></small>" +
+                       "<small className=\"text-muted\"></small>" + "<br>" +
                        "</div>"
 
                    )
@@ -147,7 +169,7 @@
             })
         })
 
-
+        })
 
     })
 
